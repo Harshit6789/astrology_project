@@ -11,18 +11,17 @@ const bodyParser = require('body-parser');
 
 
 router.use(bodyParser.urlencoded({ extended: true }));
-router.use(bodyParser.json())
+router.use(bodyParser.json());
+
 /*sending data*/
 router.post('/register', validate, async function (req, res) {
     try {
-
         const isEmail = await userModel.findOne({ email: req.body.email });
         if (isEmail) {
             return res.status(400).send({
                 error: "Email already exists"
             });
         }
-
         Password = await bcrypt.hash(req.body.password, 8);
 
         const user = new userModel({
@@ -32,7 +31,6 @@ router.post('/register', validate, async function (req, res) {
             password: Password,
             isadmin: req.body.isadmin
         })
-
         if (user) {
             const data = await user.save();
             return res.status(200).send({
@@ -50,7 +48,7 @@ router.post('/register', validate, async function (req, res) {
 
 /*login user*/
 router.post('/login', async (req, res) => {
-   
+
     const Email = await userModel.findOne({ email: req.body.email });
     if (!Email) {
         return res.status(400).send({
@@ -64,11 +62,11 @@ router.post('/login', async (req, res) => {
             error: "invalid password!!!!!!!"
         })
     }
-    else{
+    else {
         if (Email.isadmin == true) {
             return res.status(200).send("Welcome to the admin dashboard");
         }
-        else{
+        else {
             return res.status(200).send("Welcome to user dashboard");
         }
     }
@@ -96,7 +94,6 @@ router.get('/home', async (req, res) => {
         res.send("Error " + err);
     }
 });
-
 
 /****authorizing users **/
 router.post("/dashboard", (req, res) => {
