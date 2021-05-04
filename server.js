@@ -1,7 +1,8 @@
 require("dotenv").config();
 const express = require("express");
+const api = require("./api/api");
+const cors = require("cors");
 const app = express();
-const userApi = require("./api/userData-api");
 
 const url = process.env.db;
 const mongoose = require("mongoose");
@@ -13,5 +14,9 @@ mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true }, (err)
     }
 })
 app.use(express.json());
-app.use("/api",userApi);
-app.listen(5000, console.log("server is running at 5000....."));
+app.use(cors());
+
+app.use("/api",api);
+
+const port = process.env.PORT;
+app.listen(port, console.log(`server is running at ${port}.....`));

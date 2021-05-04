@@ -20,7 +20,11 @@ const astroUserSchema = new mongoose.Schema({
     isadmin: {
         type: Boolean,
         default: false
+    },
+    resetLink: {
+        data: String,
+        default: ''
     }
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model('userdata', astroUserSchema);
