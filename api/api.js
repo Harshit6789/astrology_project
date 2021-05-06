@@ -1,7 +1,7 @@
 const express = require('express');
 const validate = require('../validate');
 const bodyParser = require('body-parser');
-const { register, logIn, forgotPassword, resetPassword } = require('../controller/adminPanel');
+const { register, logIn, forgotPassword, resetPassword  , joinAstrology} = require('../controller/adminPanel');
 const router = express.Router();
 
 router.use(bodyParser.urlencoded({ extended: true }));
@@ -19,4 +19,6 @@ router.put('/forgotPassword', forgotPassword);
 /*Reset-password*/
 router.put('/resetPassword', resetPassword);
 
+//join astrology
+router.post('/joinAstrology' , joinAstrology);
 module.exports = router;
