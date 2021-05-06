@@ -2,6 +2,7 @@ const userModel = require('../model/userModel');
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
+const joinAstrology = require('../model/joinAstrology');
 
 exports.register = async (req, res) => {
     try {
@@ -125,5 +126,31 @@ exports.resetPassword = async (req, res) => {
     }
     else {
         return res.status(401).json({ error: "Link is not found" });
+    }
+}
+
+//join astrology 
+exports.joinAstrology = async(req,res)=>{
+    try{
+        const userData = new joinAstrology({
+            billingperiod : req.body.billingperiod,
+            fname : req.body.fname,
+            gender : req.body.gender,
+            birthdate : req.body.birthdate,
+            birthtimee : req.body.birthtime,
+            birthlocation : req.body.birthlocation,
+            email : req.body.email
+        })
+
+        try{
+            const data = await userData.save();
+            res.status(200).json({
+                data : data
+            })
+        }catch(err){
+            throw err;
+        }
+    }catch(err){
+        throw err;
     }
 }
