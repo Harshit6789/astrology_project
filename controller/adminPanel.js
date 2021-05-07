@@ -2,6 +2,7 @@ const userModel = require('../model/userModel');
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
+const joinAstrology = require('../model/joinAstrology');
 
 exports.register = async (req, res) => {
     try {
@@ -128,6 +129,7 @@ exports.resetPassword = async (req, res) => {
     }
 }
 
+<<<<<<< HEAD
 exports.deleteUser = async (req, res) => {
     try {
         await userModel.deleteOne({ _id: req.params.id }, (err, result) => {
@@ -147,5 +149,30 @@ exports.deleteUser = async (req, res) => {
         return res.status(400).json({
             message: "User is not found, Please check the user id again" + err
         })
+=======
+//join astrology 
+exports.joinAstrology = async(req,res)=>{
+    try{
+        const userData = new joinAstrology({
+            billingperiod : req.body.billingperiod,
+            fname : req.body.fname,
+            gender : req.body.gender,
+            birthdate : req.body.birthdate,
+            birthtimee : req.body.birthtime,
+            birthlocation : req.body.birthlocation,
+            email : req.body.email
+        })
+
+        try{
+            const data = await userData.save();
+            res.status(200).json({
+                data : data
+            })
+        }catch(err){
+            throw err;
+        }
+    }catch(err){
+        throw err;
+>>>>>>> 844b85f78af941ae0ad467b61af79d761edd8fb0
     }
 }
