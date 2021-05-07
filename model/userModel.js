@@ -1,7 +1,6 @@
-
 const mongoose = require('mongoose');
 const astroUserSchema = new mongoose.Schema({
-
+  
     firstName: {
         type: String,
         required: true

@@ -11,19 +11,19 @@ exports.register = async (req, res) => {
                 error: "This Email is already exists"
             });
         }
-        let Password = await bcrypt.hash(req.body.password, 8);
+        let encryptedPassword = await bcrypt.hash(req.body.password, 8);
         const userData = new userModel({
             firstName: req.body.firstName,
             lastName: req.body.lastName,
             email: req.body.email,
-            password: Password
+            password: encryptedPassword
         })
         if (userData) {
-            const data = await user.save();
+            const data = await userData.save();
             return res.status(200).json({ message: data })
         }
         else {
-            res.json("Error: " + err);
+            res.json("Error:" + err);
         }
     }
     catch (err) {
@@ -64,21 +64,21 @@ exports.forgotPassword = async (req, res) => {
         let transporter = nodemailer.createTransport({
             host: "smtp.ethereal.email",
             port: 587,
-            secure: false, 
+            secure: false,
             auth: {
                 user: process.env.EMAIL_LOGIN,
                 pass: process.env.EMAIL_PASSWORD
             },
         });
         let info = await transporter.sendMail({
-            from: 'noreply@hellogmail.com', 
-            to: email, 
-            subject: "Reset Your Password", 
-            text: "Plaese click that button", 
+            from: 'noreply@hellogmail.com',
+            to: email,
+            subject: "Reset Your Password",
+            text: "Plaese click that button",
             html: `
             <h2>Please click on given link to reset your password</h2>
              <p>${process.env.CLIENT_URL}/resetpassword/${token}</p>
-            ` 
+            `
         });
         return userModel.updateOne({ email: req.body.email }, { resetLink: token }, function (err, success) {
             if (err) {
@@ -98,7 +98,7 @@ exports.resetPassword = async (req, res) => {
         jwt.verify(resetLink, process.env.RESET_PASSWORD_KEY, async (err, decodeData) => {
             if (err) {
                 return res.status(401).json({
-                    error: "Incorrect token or it is expired"
+                    error: "Incorrect token or it is expired" + err
                 })
             }
             await userModel.findOne({ resetLink }, async (err, user) => {
@@ -108,12 +108,12 @@ exports.resetPassword = async (req, res) => {
                 let encryptedPassword = await bcrypt.hash(newPass, 8);
                 let object = {
                     password: encryptedPassword,
-                    resetLink:""
+                    resetLink: ""
                 }
                 await userModel.updateOne({ resetLink: resetLink }, object, (err, result) => {
                     if (err) {
                         return res.status(400).json({
-                            error: "Reset Password Error"+err
+                            error: "Reset Password Error" + err
                         });
                     }
                     else {
@@ -125,5 +125,27 @@ exports.resetPassword = async (req, res) => {
     }
     else {
         return res.status(401).json({ error: "Link is not found" });
+    }
+}
+
+exports.deleteUser = async (req, res) => {
+    try {
+        await userModel.deleteOne({ _id: req.params.id }, (err, result) => {
+            if (err) {
+                return res.status(400).json({
+                    message: "User is not found" + err
+                });
+            }
+            else {
+                return res.status(200).json({
+                    message: "User is  deleted"
+                });
+            }
+        })
+
+    } catch (err) {
+        return res.status(400).json({
+            message: "User is not found, Please check the user id again" + err
+        })
     }
 }
