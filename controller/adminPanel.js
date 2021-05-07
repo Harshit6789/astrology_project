@@ -129,7 +129,32 @@ exports.resetPassword = async (req, res) => {
     }
 }
 
-<<<<<<< HEAD
+/*join astrology*/
+exports.joinAstrology = async (req, res) => {
+    try {
+        const userData = new joinAstrology({
+            billingperiod: req.body.billingperiod,
+            fname: req.body.fname,
+            gender: req.body.gender,
+            birthdate: req.body.birthdate,
+            birthtimee: req.body.birthtime,
+            birthlocation: req.body.birthlocation,
+            email: req.body.email
+        })
+
+        try {
+            const data = await userData.save();
+            res.status(200).json({
+                data: data
+            })
+        } catch (err) {
+            throw err;
+        }
+    } catch (err) {
+        throw err;
+    }
+}
+
 exports.deleteUser = async (req, res) => {
     try {
         await userModel.deleteOne({ _id: req.params.id }, (err, result) => {
@@ -140,39 +165,13 @@ exports.deleteUser = async (req, res) => {
             }
             else {
                 return res.status(200).json({
-                    message: "User is  deleted"
+                    message: "User id Remove"
                 });
             }
         })
-
     } catch (err) {
         return res.status(400).json({
-            message: "User is not found, Please check the user id again" + err
-        })
-=======
-//join astrology 
-exports.joinAstrology = async(req,res)=>{
-    try{
-        const userData = new joinAstrology({
-            billingperiod : req.body.billingperiod,
-            fname : req.body.fname,
-            gender : req.body.gender,
-            birthdate : req.body.birthdate,
-            birthtimee : req.body.birthtime,
-            birthlocation : req.body.birthlocation,
-            email : req.body.email
-        })
-
-        try{
-            const data = await userData.save();
-            res.status(200).json({
-                data : data
-            })
-        }catch(err){
-            throw err;
-        }
-    }catch(err){
-        throw err;
->>>>>>> 844b85f78af941ae0ad467b61af79d761edd8fb0
+            message: "User id is not found" + err
+        });
     }
 }
