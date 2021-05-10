@@ -175,3 +175,19 @@ exports.deleteUser = async (req, res) => {
         });
     }
 }
+
+//update user
+exports.updateUser = async(req,res)=>{
+    try{
+        const user = await userModel.findById(req.params.id);
+        console.log(req.params.id);
+        console.log(user);
+        user.firstName = req.body.firstName;
+        user.lastName = req.body.lastName;
+        user.email = req.body.email;
+        const u = await user.save();
+        res.status(200).send(u)
+    }catch(err){
+        throw err;
+    }
+}
