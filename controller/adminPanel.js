@@ -9,7 +9,7 @@ exports.register = async (req, res) => {
         const isEmail = await userModel.findOne({ email: req.body.email });
         if (isEmail) {
             return res.status(400).json({
-                error: "This Email is already exists"
+                message: "This Email is already exists"
             });
         }
         let encryptedPassword = await bcrypt.hash(req.body.password, 8);
@@ -24,11 +24,11 @@ exports.register = async (req, res) => {
             return res.status(200).json({ message: data })
         }
         else {
-            res.json("Error:" + err);
+           return res.status(400).json("message:" + err);
         }
     }
     catch (err) {
-        return res.status(400).json({ error: "something went wrong" + err })
+        return res.status(400).json({ message: "something went wrong" + err })
     }
 }
 
@@ -36,13 +36,13 @@ exports.logIn = async (req, res) => {
     const userDetail = await userModel.findOne({ email: req.body.email });
     if (!userDetail) {
         return res.status(400).json({
-            error: "User not found, Please enter valid detail"
+            message: "User not found, Please enter valid detail"
         });
     }
     const validPassword = await bcrypt.compare(req.body.password, userDetail.password);
     if (!validPassword) {
         return res.status(400).json({
-            error: "Password is not correct, Please verify your password"
+            message: "Password is not correct, Please verify your password"
         })
     }
     else {
@@ -59,7 +59,7 @@ exports.forgotPassword = async (req, res) => {
     const { email } = req.body;
     await userModel.findOne({ email }, async (err, user) => {
         if (err || !user) {
-            return res.status(400).json({ error: "User with this email is not exist" });
+            return res.status(400).json({ message: "User with this email is not exist" });
         }
         const token = jwt.sign({ email: req.body.email }, process.env.RESET_PASSWORD_KEY, { expiresIn: "20m" });
         let transporter = nodemailer.createTransport({
@@ -83,7 +83,7 @@ exports.forgotPassword = async (req, res) => {
         });
         return userModel.updateOne({ email: req.body.email }, { resetLink: token }, function (err, success) {
             if (err) {
-                return res.status(400).json({ error: "Reset password Link Error" });
+                return res.status(400).json({ message: "Reset password Link Error" });
             }
             else {
                 console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
@@ -99,12 +99,12 @@ exports.resetPassword = async (req, res) => {
         jwt.verify(resetLink, process.env.RESET_PASSWORD_KEY, async (err, decodeData) => {
             if (err) {
                 return res.status(401).json({
-                    error: "Incorrect token or it is expired" + err
+                    message: "Incorrect token or it is expired" + err
                 })
             }
             await userModel.findOne({ resetLink }, async (err, user) => {
                 if (err || !user) {
-                    return res.status(400).json({ error: "User with this token does not exist" });
+                    return res.status(400).json({ message: "User with this token does not exist" });
                 }
                 let encryptedPassword = await bcrypt.hash(newPass, 8);
                 let object = {
@@ -114,7 +114,7 @@ exports.resetPassword = async (req, res) => {
                 await userModel.updateOne({ resetLink: resetLink }, object, (err, result) => {
                     if (err) {
                         return res.status(400).json({
-                            error: "Reset Password Error" + err
+                            message: "Reset Password Error" + err
                         });
                     }
                     else {
@@ -125,7 +125,7 @@ exports.resetPassword = async (req, res) => {
         })
     }
     else {
-        return res.status(401).json({ error: "Link is not found" });
+        return res.status(401).json({ message: "Link is not found" });
     }
 }
 
@@ -154,7 +154,7 @@ exports.joinAstrology = async (req, res) => {
         throw err;
     }
 }
-
+/*Delete user by admin*/
 exports.deleteUser = async (req, res) => {
     try {
         await userModel.deleteOne({ _id: req.params.id }, (err, result) => {
