@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const joinAstrology = require('../model/joinAstrology');
+const  db  = process.env.db;
 
 exports.register = async (req, res) => {
     try {
@@ -180,13 +181,42 @@ exports.deleteUser = async (req, res) => {
 exports.updateUser = async(req,res)=>{
     try{
         const user = await userModel.findById(req.params.id);
-        console.log(req.params.id);
-        console.log(user);
         user.firstName = req.body.firstName;
         user.lastName = req.body.lastName;
         user.email = req.body.email;
         const u = await user.save();
         res.status(200).send(u)
+    }catch(err){
+        throw err;
+    }
+}
+
+//sorting users on basis of names
+exports.sortUsers = async(req,res)=>{
+    try{
+        let sortedUsers = await userModel.find().sort( {firstName : 1});
+        res.status(200).send(sortedUsers);
+    }catch(err){
+        throw err;
+    }
+}
+
+//pagination of uers
+exports.pagiUsers = async(req,res)=>{
+    try{
+        let pageNo = req.params.pageNo;
+        let pagiUsers = await userModel.find().limit(5).skip((pageNo-1)*5);
+        res.status(200).send(pagiUsers);
+    }catch(err){
+        throw err;
+    }
+}
+
+//listing of users 
+exports.listUsers = async(req,res)=>{
+    try{
+        let listUsers = await userModel.find().limit(5);
+        res.status(200).send(listUsers);
     }catch(err){
         throw err;
     }
