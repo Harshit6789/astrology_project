@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const astroUserSchema = new mongoose.Schema({
-  
+
     firstName: {
         type: String,
         required: true
@@ -17,9 +17,13 @@ const astroUserSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    isadmin: {
+    isAdmin: {
         type: Boolean,
         default: false
+    },
+    isActive: {
+        type: Boolean,
+        default: true
     },
     resetLink: {
         data: String,

@@ -6,126 +6,141 @@ const joinAstrology = require('../model/joinAstrology');
 
 exports.register = async (req, res) => {
     try {
-        const isEmail = await userModel.findOne({ email: req.body.email });
+        const { firstName, lastName, email, password } = req.body;
+        const isEmail = await userModel.findOne({ email });
         if (isEmail) {
             return res.status(400).json({
                 message: "This Email is already exists"
             });
         }
-        let encryptedPassword = await bcrypt.hash(req.body.password, 8);
-        const userData = new userModel({
-            firstName: req.body.firstName,
-            lastName: req.body.lastName,
-            email: req.body.email,
-            password: encryptedPassword
-        })
+        let encryptedPassword = await bcrypt.hash(password, 8);
+        const userData = new userModel({ firstName, lastName, email, password: encryptedPassword })
         if (userData) {
             const data = await userData.save();
-            return res.status(200).json({ message: data })
+            return res.status(200).send({ message: data })
         }
         else {
-           return res.status(400).json("message:" + err);
+            return res.status(400).json("message:" + err);
         }
     }
     catch (err) {
-        return res.status(400).json({ message: "something went wrong" + err })
+        return res.status(400).json({ message: "something went wrong" + err });
     }
 }
 
+
 exports.logIn = async (req, res) => {
-    const userDetail = await userModel.findOne({ email: req.body.email });
-    if (!userDetail) {
-        return res.status(400).json({
-            message: "User not found, Please enter valid detail"
-        });
-    }
-    const validPassword = await bcrypt.compare(req.body.password, userDetail.password);
-    if (!validPassword) {
-        return res.status(400).json({
-            message: "Password is not correct, Please verify your password"
-        })
-    }
-    else {
-        if (userDetail.isadmin == true) {
-            return res.status(200).json("Welcome to the admin dashboard");
+    try {
+        const { email, password } = req.body;
+        const userDetail = await userModel.findOne({ email: email });
+        if (!userDetail) {
+            return res.status(400).json({
+                message: "User not found, Please enter valid detail"
+            });
+        }
+        const validPassword = await bcrypt.compare(password, userDetail.password);
+        if (!validPassword) {
+            return res.status(400).json({
+                message: "Password is not correct, Please verify your password"
+            })
+        }
+        else if (userDetail.isActive == false) {
+            return res.status(400).json({ message: "User account is deactivate" });
         }
         else {
-            return res.status(200).json("Welcome to the user dashboard");
+
+            if (userDetail.isAdmin == true) {
+                const token = jwt.sign({ email: email }, process.env.ADMIN_TOKEN_KEY, { expiresIn: "20m" });
+                return res.status(200).json("Welcome to the admin dashboard" + " " + token);
+            }
+            else {
+                const token = jwt.sign({ email: email }, process.env.USER_TOKEN_KEY, { expiresIn: "20m" });
+                return res.status(200).json("Welcome to the user dashboard" + " " + token);
+            }
         }
+    } catch (err) {
+        return res.status(400).json({ message: "something went wrong" + err });
     }
 }
 
 exports.forgotPassword = async (req, res) => {
-    const { email } = req.body;
-    await userModel.findOne({ email }, async (err, user) => {
-        if (err || !user) {
-            return res.status(400).json({ message: "User with this email is not exist" });
-        }
-        const token = jwt.sign({ email: req.body.email }, process.env.RESET_PASSWORD_KEY, { expiresIn: "20m" });
-        let transporter = nodemailer.createTransport({
-            host: "smtp.ethereal.email",
-            port: 587,
-            secure: false,
-            auth: {
-                user: process.env.EMAIL_LOGIN,
-                pass: process.env.EMAIL_PASSWORD
-            },
-        });
-        let info = await transporter.sendMail({
-            from: 'noreply@hellogmail.com',
-            to: email,
-            subject: "Reset Your Password",
-            text: "Plaese click that button",
-            html: `
+    try {
+        const { email } = req.body;
+        await userModel.findOne({ email }, async (err, user) => {
+            if (err || !user) {
+                return res.status(400).json({ message: "User with this email is not exist" });
+            }
+            const token = jwt.sign({ email: req.body.email }, process.env.RESET_PASSWORD_KEY, { expiresIn: "20m" });
+            let transporter = nodemailer.createTransport({
+                host: "smtp.ethereal.email",
+                port: 587,
+                secure: false,
+                auth: {
+                    user: process.env.EMAIL_LOGIN,
+                    pass: process.env.EMAIL_PASSWORD
+                },
+            });
+            let info = await transporter.sendMail({
+                from: 'noreply@hellogmail.com',
+                to: email,
+                subject: "Reset Your Password",
+                html: `
             <h2>Please click on given link to reset your password</h2>
              <p>${process.env.CLIENT_URL}/resetpassword/${token}</p>
             `
-        });
-        return userModel.updateOne({ email: req.body.email }, { resetLink: token }, function (err, success) {
-            if (err) {
-                return res.status(400).json({ message: "Reset password Link Error" });
-            }
-            else {
-                console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
-                return res.status(200).json({ message: info.messageId });
-            }
+            });
+            return userModel.updateOne({ email: req.body.email }, { resetLink: token }, function (err, success) {
+                if (err) {
+                    return res.status(400).json({ message: "Reset password Link Error" });
+                }
+                else {
+                    console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+                    return res.status(200).json({ message: info.messageId });
+                }
+            })
         })
-    })
+    } catch (err) {
+        return res.status(400).json({ message: "something went wrong" + err });
+    }
 }
 
 exports.resetPassword = async (req, res) => {
-    const { resetLink, newPass } = req.body;
-    if (resetLink) {
-        jwt.verify(resetLink, process.env.RESET_PASSWORD_KEY, async (err, decodeData) => {
-            if (err) {
-                return res.status(401).json({
-                    message: "Incorrect token or it is expired" + err
-                })
-            }
-            await userModel.findOne({ resetLink }, async (err, user) => {
-                if (err || !user) {
-                    return res.status(400).json({ message: "User with this token does not exist" });
+    try {
+        const { resetLink, newPass } = req.body;
+        if (resetLink) {
+            jwt.verify(resetLink, process.env.RESET_PASSWORD_KEY, async (err, decodeData) => {
+                if (err) {
+                    return res.status(401).json({
+                        message: "Incorrect token or it is expired" + err
+                    })
                 }
-                let encryptedPassword = await bcrypt.hash(newPass, 8);
-                let object = {
-                    password: encryptedPassword,
-                    resetLink: ""
-                }
-                await userModel.updateOne({ resetLink: resetLink }, object, (err, result) => {
-                    if (err) {
-                        return res.status(400).json({
-                            message: "Reset Password Error" + err
-                        });
+                await userModel.findOne({ resetLink }, async (err, user) => {
+                    if (err || !user) {
+                        return res.status(400).json({ message: "User with this token does not exist" });
                     }
-                    else {
-                        return res.status(200).json({ message: "Your password has been changed" });
+                    let encryptedPassword = await bcrypt.hash(newPass, 8);
+                    let object = {
+                        password: encryptedPassword,
+                        resetLink: ""
                     }
+                    await userModel.updateOne({ resetLink: resetLink }, object, (err, result) => {
+                        if (err) {
+                            return res.status(400).json({
+                                message: "Reset Password Error" + err
+                            });
+                        }
+                        else {
+                            return res.status(200).json({ message: "Your password has been changed" });
+                        }
+                    })
                 })
             })
-        })
-    }
-    else {
-        return res.status(401).json({ message: "Link is not found" });
+        }
+        else {
+            return res.status(401).json({ message: "Link is not found" });
+        }
+    } catch (err) {
+        return res.status(400).json({ message: "something went wrong" + err });
     }
 }
 
@@ -154,6 +169,7 @@ exports.joinAstrology = async (req, res) => {
         throw err;
     }
 }
+
 /*Delete user by admin*/
 exports.deleteUser = async (req, res) => {
     try {
@@ -170,8 +186,38 @@ exports.deleteUser = async (req, res) => {
             }
         })
     } catch (err) {
-        return res.status(400).json({
-            message: "User id is not found" + err
-        });
+        return res.status(400).json({ message: "User id is not found" + err });
+    }
+}
+
+/*Get all the data of user in admin panel*/
+exports.getData = async (req, res) => {
+    try {
+        await userModel.find().exec(function (err, result) {
+            if (err) {
+                return res.json({ message: "Data is not found" + err });
+            } else {
+                return res.json({ message: result });
+            }
+        })
+    } catch (err) {
+        return res.json({ message: "Data is not get" + err });
+    }
+}
+
+/*Activate and deactivate all the user by admin*/
+exports.activateAndDeactivateUser = async (req, res) => {
+    try {
+        const { email, isActive } = req.body;
+        await userModel.updateOne({ email: email }, { isActive: isActive }, { new: true }, (err, result) => {
+            if (err) {
+                return res.status(400).json({ message: "User account is not activate or deactivate" + err });
+            } else {
+                return res.status(200).send(result);
+            }
+        })
+    }
+    catch (err) {
+        return res.status(400).json({ message: "User is not found, please check the email" + err });
     }
 }
