@@ -3,7 +3,6 @@ const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const joinAstrology = require('../model/joinAstrology');
-const  db  = process.env.db;
 
 exports.register = async (req, res) => {
     try {
@@ -171,6 +170,20 @@ exports.joinAstrology = async (req, res) => {
     }
 }
 
+//update user
+exports.updateUser = async(req,res)=>{
+    try{
+        const user = await userModel.findById(req.params.id);
+        user.firstName = req.body.firstName;
+        user.lastName = req.body.lastName;
+        user.email = req.body.email;
+        const u = await user.save();
+        res.status(200).send(u)
+    }catch(err){
+        throw err;
+    }
+}
+
 /*Delete user by admin*/
 exports.deleteUser = async (req, res) => {
     try {
@@ -196,13 +209,13 @@ exports.getData = async (req, res) => {
     try {
         await userModel.find().exec(function (err, result) {
             if (err) {
-                return res.json({ message: "Data is not found" + err });
+                return res.json({ message: "User data is not found" + err });
             } else {
                 return res.json({ message: result });
             }
         })
     } catch (err) {
-        return res.json({ message: "Data is not get" + err });
+        return res.json({ message: "Users are not found, Please check the address" + err });
     }
 }
 
@@ -223,19 +236,6 @@ exports.activateAndDeactivateUser = async (req, res) => {
     }
 }
 
-//update user
-exports.updateUser = async(req,res)=>{
-    try{
-        const user = await userModel.findById(req.params.id);
-        user.firstName = req.body.firstName;
-        user.lastName = req.body.lastName;
-        user.email = req.body.email;
-        const u = await user.save();
-        res.status(200).send(u)
-    }catch(err){
-        throw err;
-    }
-}
 
 //sorting users on basis of names
 exports.sortUsers = async(req,res)=>{
