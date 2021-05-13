@@ -1,7 +1,7 @@
 const express = require('express');
 const validate = require('../validate');
 const bodyParser = require('body-parser');
-const { register, logIn, forgotPassword, resetPassword, deleteUser, joinAstrology, activateAndDeactivateUser, getData } = require('../controller/adminPanel');
+const { register, logIn, forgotPassword, resetPassword, deleteUser, joinAstrology , updateUser , sortUsers , listUsers , pagiUsers} = require('../controller/adminPanel');
 const router = express.Router();
 
 router.use(bodyParser.urlencoded({ extended: true }));
