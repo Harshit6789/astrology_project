@@ -51,11 +51,17 @@ exports.logIn = async (req, res) => {
 
             if (userDetail.isAdmin == true) {
                 const token = jwt.sign({ email: email }, process.env.ADMIN_TOKEN_KEY, { expiresIn: "20m" });
-                return res.status(200).json("Welcome to the admin dashboard" + " " + token);
+                return res.status(200).json({
+                    message: "Welcome to the admin dashboard",
+                    token: token
+                });
             }
             else {
                 const token = jwt.sign({ email: email }, process.env.USER_TOKEN_KEY, { expiresIn: "20m" });
-                return res.status(200).json("Welcome to the user dashboard" + " " + token);
+                return res.status(200).json({
+                    message: "Welcome to the user dashboard",
+                    token: token
+                });
             }
         }
     } catch (err) {
@@ -171,15 +177,15 @@ exports.joinAstrology = async (req, res) => {
 }
 
 //update user
-exports.updateUser = async(req,res)=>{
-    try{
+exports.updateUser = async (req, res) => {
+    try {
         const user = await userModel.findById(req.params.id);
         user.firstName = req.body.firstName;
         user.lastName = req.body.lastName;
         user.email = req.body.email;
         const u = await user.save();
         res.status(200).send(u)
-    }catch(err){
+    } catch (err) {
         throw err;
     }
 }
@@ -238,32 +244,32 @@ exports.activateAndDeactivateUser = async (req, res) => {
 
 
 //sorting users on basis of names
-exports.sortUsers = async(req,res)=>{
-    try{
-        let sortedUsers = await userModel.find().sort( {firstName : 1});
+exports.sortUsers = async (req, res) => {
+    try {
+        let sortedUsers = await userModel.find().sort({ firstName: 1 });
         res.status(200).send(sortedUsers);
-    }catch(err){
+    } catch (err) {
         throw err;
     }
 }
 
 //pagination of uers
-exports.pagiUsers = async(req,res)=>{
-    try{
+exports.pagiUsers = async (req, res) => {
+    try {
         let pageNo = req.params.pageNo;
-        let pagiUsers = await userModel.find().limit(5).skip((pageNo-1)*5);
+        let pagiUsers = await userModel.find().limit(5).skip((pageNo - 1) * 5);
         res.status(200).send(pagiUsers);
-    }catch(err){
+    } catch (err) {
         throw err;
     }
 }
 
 //listing of users 
-exports.listUsers = async(req,res)=>{
-    try{
+exports.listUsers = async (req, res) => {
+    try {
         let listUsers = await userModel.find().limit(5);
         res.status(200).send(listUsers);
-    }catch(err){
+    } catch (err) {
         throw err;
     }
 }
