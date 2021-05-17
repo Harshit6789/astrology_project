@@ -92,7 +92,7 @@ exports.forgotPassword = async (req, res) => {
                 subject: "Reset Your Password",
                 html: `
             <h2>Please click on given link to reset your password</h2>
-             <p>${process.env.CLIENT_URL}/resetpassword/${token}</p>
+             <a href="${process.env.CLIENT_URL}/resetpassword/${token}">Click Here to  reset the password</a>
             `
             });
             return userModel.updateOne({ email: req.body.email }, { resetLink: token }, function (err, success) {
@@ -158,7 +158,7 @@ exports.joinAstrology = async (req, res) => {
             fname: req.body.fname,
             gender: req.body.gender,
             birthdate: req.body.birthdate,
-            birthtimee: req.body.birthtime,
+            birthtime: req.body.birthtime,
             birthlocation: req.body.birthlocation,
             email: req.body.email
         })
@@ -229,12 +229,18 @@ exports.getData = async (req, res) => {
 exports.activateAndDeactivateUser = async (req, res) => {
     try {
         const { email, isActive } = req.body;
-        await userModel.updateOne({ email: email }, { isActive: isActive }, { new: true }, (err, result) => {
-            if (err) {
-                return res.status(400).json({ message: "User account is not activate or deactivate" + err });
-            } else {
-                return res.status(200).send(result);
+        await userModel.findOne({ email }, async (err, user) => {
+            if (err || !user) {
+                return res.status(400).json({ message: "User with this email is not exist" });
             }
+            await userModel.updateOne({ email: email }, { isActive: isActive }, { new: true }, (err, result) => {
+                if (err) {
+                    return res.status(400).json({ message: "User account is not activate or deactivate" + err });
+                } else {
+                    console.log(result);
+                    return res.status(200).send(result);
+                }
+            })
         })
     }
     catch (err) {
@@ -273,3 +279,4 @@ exports.listUsers = async (req, res) => {
         throw err;
     }
 }
+
