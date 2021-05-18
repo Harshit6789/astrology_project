@@ -284,17 +284,13 @@ exports.listUsers = async (req, res) => {
 
 exports.getUser = async (req, res) => {
     try {
-        var id = req.params.id;
-        var $or = [{ firstName: id }];
-        if (ObjectId.isValid(id)) {
-            $or.push({ _id: ObjectId(id) });
-        }
-        await userModel.find({ $or: $or }).exec(function (err, result) {
+        var name = req.body.firstName;
+        userModel.findOne({ firstName: new RegExp('^' + name + '$', "i") }, function (err, doc) {
             if (err) {
                 return res.json({ message: "User is not found" });
             }
             else {
-                return res.send(result);
+                return res.send(doc);
             }
         });
 

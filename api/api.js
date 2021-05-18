@@ -46,6 +46,6 @@ router.get('/listUsers', listUsers);
 router.get('/pagiUsers/:pageNo?', pagiUsers);
 
 /*Get the user data*/
-router.get('/getUser/:id', getUser);
+router.get('/getUser', getUser);
 
 module.exports = router;
