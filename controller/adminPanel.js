@@ -3,6 +3,8 @@ const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const joinAstrology = require('../model/joinAstrology');
+var ObjectId = require('mongoose').Types.ObjectId;
+
 
 exports.register = async (req, res) => {
     try {
@@ -280,3 +282,23 @@ exports.listUsers = async (req, res) => {
     }
 }
 
+exports.getUser = async (req, res) => {
+    try {
+        var id = req.params.id;
+        var $or = [{ firstName: id }];
+        if (ObjectId.isValid(id)) {
+            $or.push({ _id: ObjectId(id) });
+        }
+        await userModel.find({ $or: $or }).exec(function (err, result) {
+            if (err) {
+                return res.json({ message: "User is not found" });
+            }
+            else {
+                return res.send(result);
+            }
+        });
+
+    } catch (error) {
+        return res.json({ message: "User Id is not found" });
+    }
+}

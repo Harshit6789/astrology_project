@@ -1,7 +1,7 @@
 const express = require('express');
 const validate = require('../validate');
 const bodyParser = require('body-parser');
-const { register, logIn, forgotPassword, resetPassword, deleteUser, joinAstrology, updateUser, sortUsers, listUsers, pagiUsers , getData, activateAndDeactivateUser } = require('../controller/adminPanel');
+const { register, logIn, forgotPassword, resetPassword, deleteUser, joinAstrology, updateUser, sortUsers, listUsers, pagiUsers , getData, activateAndDeactivateUser, getUser} = require('../controller/adminPanel');
 const router = express.Router();
 
 router.use(bodyParser.urlencoded({ extended: true }));
@@ -44,5 +44,8 @@ router.get('/listUsers', listUsers);
 
 //pagination of users
 router.get('/pagiUsers/:pageNo?', pagiUsers);
+
+/*Get the user data*/
+router.get('/getUser/:id', getUser);
 
 module.exports = router;
