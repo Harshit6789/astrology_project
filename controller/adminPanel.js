@@ -3,8 +3,6 @@ const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const joinAstrology = require('../model/joinAstrology');
-var ObjectId = require('mongoose').Types.ObjectId;
-
 
 exports.register = async (req, res) => {
     try {
@@ -227,6 +225,7 @@ exports.getData = async (req, res) => {
     }
 }
 
+
 /*Activate and deactivate all the user by admin*/
 exports.activateAndDeactivateUser = async (req, res) => {
     try {
@@ -254,7 +253,7 @@ exports.activateAndDeactivateUser = async (req, res) => {
 //sorting users on basis of names
 exports.sortUsers = async (req, res) => {
     try {
-        let sortedUsers = await userModel.find().sort({ firstName: 1 });
+        let sortedUsers = await userModel.find().collation({locale:"en"}).sort({ firstName: 1 });
         res.status(200).send(sortedUsers);
     } catch (err) {
         throw err;
@@ -265,11 +264,16 @@ exports.sortUsers = async (req, res) => {
 exports.pagiUsers = async (req, res) => {
     try {
         let pageNo = req.params.pageNo;
-        let pagiUsers = await userModel.find().limit(5).skip((pageNo - 1) * 5);
-        res.status(200).send(pagiUsers);
-    } catch (err) {
+        let totalRows = await userModel.count();
+        let totalPages = Math.ceil(totalRows / 5);
+        let pagiUsers = await userModel
+          .find()
+          .limit(5)
+          .skip((pageNo - 1) * 5);
+        res.status(200).send({ totalPages: totalPages, Users: pagiUsers });
+      } catch (err) {
         throw err;
-    }
+      }
 }
 
 //listing of users 
@@ -285,12 +289,12 @@ exports.listUsers = async (req, res) => {
 exports.getUser = async (req, res) => {
     try {
         var name = req.body.firstName;
-        userModel.findOne({ firstName: new RegExp('^' + name + '$', "i") }, function (err, doc) {
+        await userModel.findOne({ firstName: new RegExp('^' + name + '$', "i") }, function (err, result) {
             if (err) {
                 return res.json({ message: "User is not found" });
             }
             else {
-                return res.send(doc);
+                return res.send(result);
             }
         });
 
