@@ -260,7 +260,7 @@ exports.sortUsers = async (req, res) => {
     }
 }
 
-//pagination of uers
+//pagination of users
 exports.pagiUsers = async (req, res) => {
     try {
         let pageNo = req.params.pageNo;
