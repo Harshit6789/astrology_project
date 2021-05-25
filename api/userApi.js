@@ -1,43 +1,31 @@
 const express = require('express');
-const validate = require('../validate');
+const validate = require('../userValidate');
 const bodyParser = require('body-parser');
-const { register, logIn, forgotPassword, resetPassword, deleteUser, joinAstrology, updateUser, sortUsers, listUsers, pagiUsers , getData, activateAndDeactivateUser, getUser} = require('../controller/adminPanel');
+const { register, logIn, forgotPassword, resetPassword, deleteUser, joinAstrology, updateUser, sortUsers, listUsers, pagiUsers , getData, activateAndDeactivateUser, getUser} = require('../controller/userModule');
 const router = express.Router();
-
 router.use(bodyParser.urlencoded({ extended: true }));
 router.use(bodyParser.json());
 
-/*sending data*/
+/*Register the user by user*/
 router.post('/register', validate, register);
 
-/*login user*/
+/*Login the user by user*/
 router.post('/logIn', logIn);
 
-/*Get the data in ui*/
-router.get('/get', getData);
-
-/*Forgot-password*/
+/*Forgot-password of user*/
 router.put('/forgotPassword', forgotPassword);
 
-/*Reset-password*/
+/*Reset-password of user*/
 router.put('/resetPassword', resetPassword);
-
-/*Delete User*/
-router.post('/deleteUser/:id', deleteUser);
-
-//join astrology
-router.post('/joinAstrology', joinAstrology);
-
-// Activate and deactivate user by admin
-router.put('/activateAndDeactivateUser', activateAndDeactivateUser);
-
 
 //update user
 router.patch('/updateUser/:id', updateUser);
 
+/*Delete User by admin*/
+router.post('/deleteUser/:id', deleteUser);
+
 //sort users 
 router.get('/sortUsers', sortUsers);
-
 
 //listing users
 router.get('/listUsers', listUsers);
@@ -45,7 +33,28 @@ router.get('/listUsers', listUsers);
 //pagination of users
 router.get('/pagiUsers/:pageNo?', pagiUsers);
 
-/*Get the user data*/
+/*Activate and deactivate user by admin*/
+router.put('/activateAndDeactivateUser', activateAndDeactivateUser);
+
+/*Get the data of user and show to the admin*/
+router.get('/get', getData);
+
+/*Search the user by admin*/
 router.get('/getUser', getUser);
 
+//join astrology
+router.post('/joinAstrology', joinAstrology);
+
 module.exports = router;
+
+
+
+
+
+
+
+
+
+
+
+

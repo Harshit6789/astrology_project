@@ -2,16 +2,14 @@ const userModel = require('../model/userModel');
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
-const joinAstrology = require('../model/joinAstrology');
 
+/*Register the user by user*/
 exports.register = async (req, res) => {
     try {
         const { firstName, lastName, email, password } = req.body;
-        const isEmail = await userModel.findOne({ email });
-        if (isEmail) {
-            return res.status(400).json({
-                message: "This Email is already exists"
-            });
+        const userDetails = await userModel.findOne({ email });
+        if (userDetails) {
+            return res.status(400).json({ message: "This Email is already exists" });
         }
         let encryptedPassword = await bcrypt.hash(password, 8);
         const userData = new userModel({ firstName, lastName, email, password: encryptedPassword })
@@ -28,40 +26,28 @@ exports.register = async (req, res) => {
     }
 }
 
-
+/*Login the user by user*/
 exports.logIn = async (req, res) => {
     try {
         const { email, password } = req.body;
         const userDetail = await userModel.findOne({ email: email });
         if (!userDetail) {
-            return res.status(400).json({
-                message: "User not found, Please enter valid detail"
-            });
+            return res.status(400).json({ message: "User not found, Please enter valid email" });
         }
         const validPassword = await bcrypt.compare(password, userDetail.password);
         if (!validPassword) {
-            return res.status(400).json({
-                message: "Password is not correct, Please verify your password"
-            })
+            return res.status(400).json({ message: "Password is not correct, Please verify your password" })
         }
         else if (userDetail.isActive == false) {
             return res.status(400).json({ message: "User account is deactivate" });
         }
         else {
-
             if (userDetail.isAdmin == true) {
                 const token = jwt.sign({ email: email }, process.env.ADMIN_TOKEN_KEY, { expiresIn: "20m" });
-                return res.status(200).json({
-                    message: "Welcome to the admin dashboard",
-                    token: token
-                });
+                return res.status(200).json({ message: "Welcome to the admin dashboard", token: token });
             }
-            else {
-                const token = jwt.sign({ email: email }, process.env.USER_TOKEN_KEY, { expiresIn: "20m" });
-                return res.status(200).json({
-                    message: "Welcome to the user dashboard",
-                    token: token
-                });
+            else{
+                return res.status(400).json({ message: "Admin entries is not correct, Please check it again" + err });
             }
         }
     } catch (err) {
@@ -69,6 +55,7 @@ exports.logIn = async (req, res) => {
     }
 }
 
+/*Forgot-password of user*/
 exports.forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
@@ -110,6 +97,7 @@ exports.forgotPassword = async (req, res) => {
     }
 }
 
+/*Reset-password of user*/
 exports.resetPassword = async (req, res) => {
     try {
         const { resetLink, newPass } = req.body;
@@ -150,32 +138,6 @@ exports.resetPassword = async (req, res) => {
     }
 }
 
-/*join astrology*/
-exports.joinAstrology = async (req, res) => {
-    try {
-        const userData = new joinAstrology({
-            billingperiod: req.body.billingperiod,
-            fname: req.body.fname,
-            gender: req.body.gender,
-            birthdate: req.body.birthdate,
-            birthtime: req.body.birthtime,
-            birthlocation: req.body.birthlocation,
-            email: req.body.email
-        })
-
-        try {
-            const data = await userData.save();
-            res.status(200).json({
-                data: data
-            })
-        } catch (err) {
-            throw err;
-        }
-    } catch (err) {
-        throw err;
-    }
-}
-
 //update user
 exports.updateUser = async (req, res) => {
     try {
@@ -195,14 +157,10 @@ exports.deleteUser = async (req, res) => {
     try {
         await userModel.deleteOne({ _id: req.params.id }, (err, result) => {
             if (err) {
-                return res.status(400).json({
-                    message: "User is not found" + err
-                });
+                return res.status(400).json({ message: "User is not found" + err });
             }
             else {
-                return res.status(200).json({
-                    message: "User id Remove"
-                });
+                return res.status(200).json({ message: "User id Remove" });
             }
         })
     } catch (err) {
@@ -210,21 +168,42 @@ exports.deleteUser = async (req, res) => {
     }
 }
 
-/*Get all the data of user in admin panel*/
-exports.getData = async (req, res) => {
+
+//sorting users on basis of names
+exports.sortUsers = async (req, res) => {
     try {
-        await userModel.find().exec(function (err, result) {
-            if (err) {
-                return res.json({ message: "User data is not found" + err });
-            } else {
-                return res.json({ message: result });
-            }
-        })
+        let sortedUsers = await userModel.find().collation({ locale: "en" }).sort({ firstName: 1 });
+        res.status(200).send(sortedUsers);
     } catch (err) {
-        return res.json({ message: "Users are not found, Please check the address" + err });
+        throw err;
     }
 }
 
+//pagination of users
+exports.pagiUsers = async (req, res) => {
+    try {
+        let pageNo = req.params.pageNo;
+        let totalRows = await userModel.count();
+        let totalPages = Math.ceil(totalRows / 5);
+        let pagiUsers = await userModel
+            .find()
+            .limit(5)
+            .skip((pageNo - 1) * 5);
+        res.status(200).send({ totalPages: totalPages, Users: pagiUsers });
+    } catch (err) {
+        throw err;
+    }
+}
+
+//listing of users 
+exports.listUsers = async (req, res) => {
+    try {
+        let listUsers = await userModel.find().limit(5);
+        res.status(200).send(listUsers);
+    } catch (err) {
+        throw err;
+    }
+}
 
 /*Activate and deactivate all the user by admin*/
 exports.activateAndDeactivateUser = async (req, res) => {
@@ -249,47 +228,26 @@ exports.activateAndDeactivateUser = async (req, res) => {
     }
 }
 
-
-//sorting users on basis of names
-exports.sortUsers = async (req, res) => {
+/*Get all the data of user in admin panel*/
+exports.getData = async (req, res) => {
     try {
-        let sortedUsers = await userModel.find().collation({locale:"en"}).sort({ firstName: 1 });
-        res.status(200).send(sortedUsers);
+        await userModel.find().exec(function (err, result) {
+            if (err) {
+                return res.json({ message: "User data is not found" + err });
+            } else {
+                return res.json({ message: result });
+            }
+        })
     } catch (err) {
-        throw err;
+        return res.json({ message: "Users are not found, Please check the address" + err });
     }
 }
 
-//pagination of users
-exports.pagiUsers = async (req, res) => {
-    try {
-        let pageNo = req.params.pageNo;
-        let totalRows = await userModel.count();
-        let totalPages = Math.ceil(totalRows / 5);
-        let pagiUsers = await userModel
-          .find()
-          .limit(5)
-          .skip((pageNo - 1) * 5);
-        res.status(200).send({ totalPages: totalPages, Users: pagiUsers });
-      } catch (err) {
-        throw err;
-      }
-}
-
-//listing of users 
-exports.listUsers = async (req, res) => {
-    try {
-        let listUsers = await userModel.find().limit(5);
-        res.status(200).send(listUsers);
-    } catch (err) {
-        throw err;
-    }
-}
-
+/*Search the user by admin*/
 exports.getUser = async (req, res) => {
     try {
         var name = req.body.firstName;
-        await userModel.findOne({ firstName: new RegExp('^' + name + '$', "i") }, function (err, result) {
+        await userModel.find({ firstName: new RegExp('^' + name + '$', "i") }, function (err, result) {
             if (err) {
                 return res.json({ message: "User is not found" });
             }
@@ -300,5 +258,31 @@ exports.getUser = async (req, res) => {
 
     } catch (error) {
         return res.json({ message: "User Id is not found" });
+    }
+}
+
+/*join astrology*/
+exports.joinAstrology = async (req, res) => {
+    try {
+        const userData = new joinAstrology({
+            billingperiod: req.body.billingperiod,
+            fname: req.body.fname,
+            gender: req.body.gender,
+            birthdate: req.body.birthdate,
+            birthtime: req.body.birthtime,
+            birthlocation: req.body.birthlocation,
+            email: req.body.email
+        })
+
+        try {
+            const data = await userData.save();
+            res.status(200).json({
+                data: data
+            })
+        } catch (err) {
+            throw err;
+        }
+    } catch (err) {
+        throw err;
     }
 }

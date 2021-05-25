@@ -2,15 +2,16 @@ require("dotenv").config();
 require("./connection");
 
 const express = require("express");
-const api = require("./api/userApi");
+const userApi = require("./api/userApi");
+const astrologerApi = require("./api/astrologerApi");
 const cors = require("cors");
 const app = express();
 
+app.use(cors("http://localhost:3000"));
 
-app.use(express.json());
-app.use(cors());
+app.use("/api", userApi);
+app.use('/astroApi', astrologerApi);
 
-app.use("/api",api);
 
 const port = process.env.PORT;
 app.listen(port, console.log(`server is running at ${port}....`));
