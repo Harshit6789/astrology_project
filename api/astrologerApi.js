@@ -1,11 +1,10 @@
 const express = require('express');
 const validate = require('../astrologerValidation');
-const bodyParser = require('body-parser');
 const { astrologerRegister, astrologerLogIn, forgotAstrologerPassword, resetAstrologerPassword, updateAstrologer, deleteAstrologer, sortAstrologers, listingAstrologers, paginationAstrologers, activateAndDeactivateAstrologer, getAstrologerData, getAstrologer } = require('../controller/astrologerModule');
 const router = express.Router();
 
-router.use(bodyParser.urlencoded({ extended: true }));
-router.use(bodyParser.json());
+router.use(express.json());
+router.use(express.urlencoded({ extended: true }));
 
 /*Register the astrologer by astrologer*/
 router.post('/astrologerRegister',validate, astrologerRegister);

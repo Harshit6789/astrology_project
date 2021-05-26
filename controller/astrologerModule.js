@@ -7,13 +7,13 @@ const nodemailer = require("nodemailer");
 /*Register the astrologer by astrologer*/
 exports.astrologerRegister = async (req, res) => {
     try {
-        const { firstName, lastName, email, password, experience, specialisation } = req.body;
+        const { firstName, lastName, email, password, experience, specialisation, language, cost } = req.body;
         const isEmail = await astrologerModel.findOne({ email });
         if (isEmail) {
             return res.status(400).json({ message: "This Email is already exists" });
         }
         let encryptedPassword = await bcrypt.hash(password, 8);
-        const astroData = new astrologerModel({ firstName, lastName, email, password: encryptedPassword, experience, specialisation })
+        const astroData = new astrologerModel({ firstName, lastName, email, password: encryptedPassword, experience, specialisation, language, cost })
         if (astroData) {
             const data = await astroData.save();
             return res.status(200).send({ message: data })
@@ -34,7 +34,6 @@ exports.astrologerLogIn = async (req, res) => {
         var roles = role;
         if (roles === "user") {
             const userData = await userModel.findOne({ email: email });
-            console.log(userData);
             if (!userData) {
                 return res.status(400).json({ message: "User not found, Please enter valid email" });
             }
@@ -169,7 +168,9 @@ exports.updateAstrologer = async (req, res) => {
                 lastName: req.body.lastName,
                 email: req.body.email,
                 experience: req.body.experience,
-                specialisation: req.body.specialisation
+                specialisation: req.body.specialisation,
+                language: req.body.language,
+                cost: req.body.cost
             }
         }).exec(function (err, astrologer) {
             if (!astrologer) {
@@ -192,7 +193,7 @@ exports.deleteAstrologer = async (req, res) => {
                 return res.status(400).json({ message: "Astrologer is not found" + err });
             }
             else {
-                return res.status(200).json({ message: "Astrologer id Remove" });
+                return res.status(200).json({ message: "Astrologer is delete" });
             }
         })
     } catch (err) {
@@ -245,7 +246,7 @@ exports.activateAndDeactivateAstrologer = async (req, res) => {
                 if (err) {
                     return res.status(400).json({ message: "Astrologer account is not activate or deactivate" + err });
                 } else {
-                    return res.status(200).json({message:"In your account your request is updated"});
+                    return res.status(200).json({ message: "In your account your request is updated" });
                 }
             })
         })
@@ -284,6 +285,6 @@ exports.getAstrologer = async (req, res) => {
         });
 
     } catch (error) {
-        return res.json({ message: "Astrologer Id is not found" });
+        return res.json({ message: "Astrologer id is not found" });
     }
 }

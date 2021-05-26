@@ -18,10 +18,20 @@ const astrologerSchema = new mongoose.Schema({
         required: true
     },
     experience: {
-        type: String
+        type: String,
+        required: true
     },
-    specialisation:{
-        type : String
+    specialisation: {
+        type: String,
+        required: true
+    },
+    language: {
+        type: String,
+        required: true
+    },
+    cost: {
+        type: String,
+        required: true
     },
     astroResetLink: {
         data: String,

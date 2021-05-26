@@ -1,10 +1,10 @@
 const express = require('express');
 const validate = require('../userValidate');
-const bodyParser = require('body-parser');
 const { register, logIn, forgotPassword, resetPassword, deleteUser, joinAstrology, updateUser, sortUsers, listUsers, pagiUsers , getData, activateAndDeactivateUser, getUser} = require('../controller/userModule');
 const router = express.Router();
-router.use(bodyParser.urlencoded({ extended: true }));
-router.use(bodyParser.json());
+
+router.use(express.json());
+router.use(express.urlencoded({ extended: true }));
 
 /*Register the user by user*/
 router.post('/register', validate, register);
