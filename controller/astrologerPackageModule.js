@@ -1,6 +1,6 @@
 const astrologerpackageModel = require("../model/astrologerPackageModel");
 
-
+/*Register the astrologer package by admin*/
 exports.packageRegister = async (req, res) => {
     try {
         const { packageName, month, days, packageCost, astrologerType } = req.body;
@@ -22,34 +22,37 @@ exports.packageRegister = async (req, res) => {
     }
 }
 
-exports.getPremiumPackage = async (req, res) => {
+/*Get Package subscription by astrolger*/
+exports.getSubscription = async (req, res) => {
     try {
-        await astrologerpackageModel.find({ astrologerType: "Premium" }).exec(function (err, result) {
-            if (err) {
-                return res.json({ message: "Astrologer package data is not found" + err });
-            } else {
-                return res.json({ message: result });
-            }
-        })
+        var astrologerType = req.body.astrologerType;
+        if (astrologerType == "Normal") {
+            await astrologerpackageModel.find({ astrologerType: "Normal" }).exec(function (err, result) {
+                if (err) {
+                    return res.json({ message: "Astrologer package data is not found" + err });
+                } else {
+                    return res.json({ message: result });
+                }
+            })
+        }
+        else if (astrologerType == "Premium") {
+            await astrologerpackageModel.find({ astrologerType: "Premium" }).exec(function (err, result) {
+                if (err) {
+                    return res.json({ message: "Astrologer package data is not found" + err });
+                } else {
+                    return res.json({ message: result });
+                }
+            })
+        }
+        else {
+            return false;
+        }
     } catch (err) {
         return res.json({ message: "Astrologer package are not found, Please check the address" + err });
     }
 }
 
-exports.getNormalPackage = async (req, res) => {
-    try {
-        await astrologerpackageModel.find({ astrologerType: "Normal" }).exec(function (err, result) {
-            if (err) {
-                return res.json({ message: "Astrologer package data is not found" + err });
-            } else {
-                return res.json({ message: result });
-            }
-        })
-    } catch (err) {
-        return res.json({ message: "Astrologer package are not found, Please check the address" + err });
-    }
-}
-
+/*Update the astrologer package by admin*/
 exports.packageUpdate = async (req, res) => {
     try {
         await astrologerpackageModel.findOneAndUpdate({ _id: req.params.id }, {
@@ -73,6 +76,7 @@ exports.packageUpdate = async (req, res) => {
     }
 }
 
+/*Delete the astrologer package by admin*/
 exports.packageDelete = async (req, res) => {
     try {
         await astrologerpackageModel.deleteOne({ _id: req.params.id }, (err, result) => {
@@ -88,6 +92,7 @@ exports.packageDelete = async (req, res) => {
     }
 }
 
+/*Searching the astrologer package by admin*/
 exports.getPackage = async (req, res) => {
     try {
         var name = req.body.packageName;
